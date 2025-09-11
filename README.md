@@ -45,7 +45,7 @@ Abaixo está a **jornada completa** do usuário no protótipo:
 
 ### Tela 1 — Home
 
-![Teste](https://github.com/VitorOnoue/voutrancarwebmobile/blob/main/readme_images/tela1.png)
+![Tela 1](https://github.com/VitorOnoue/voutrancarwebmobile/blob/main/readme_images/tela1.png)
 
 - O usuário vê o campo **“Onde iremos comer hoje?”**.
 - Digita, por exemplo, **“Pizza Hut”**.
@@ -53,7 +53,7 @@ Abaixo está a **jornada completa** do usuário no protótipo:
 
 ### Tela 2 — Resultados
 
-![Teste](https://github.com/VitorOnoue/voutrancarwebmobile/blob/main/readme_images/tela2.png)
+![Tela 2](https://github.com/VitorOnoue/voutrancarwebmobile/blob/main/readme_images/tela2.png)
 
 - O sistema retorna uma lista de pizzarias próximas.
 - Para cada restaurante, são exibidos:
@@ -69,7 +69,7 @@ Abaixo está a **jornada completa** do usuário no protótipo:
 
 ### Tela 3 — Comparação Detalhada
 
-![Teste](https://github.com/VitorOnoue/voutrancarwebmobile/blob/main/readme_images/tela3.png)
+![Tela 3 ](https://github.com/VitorOnoue/voutrancarwebmobile/blob/main/readme_images/tela3.png)
 
 - Ao clicar em **“Ver oferta”**, o usuário vê:
   - O **mesmo restaurante** listado em **vários apps**.
