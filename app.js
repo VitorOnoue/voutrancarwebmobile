@@ -8,7 +8,7 @@ const DB = [
     distancia_km:0.2,
     tempo_min:28,
     prato:"Pizza Margherita",
-    img:"assets/hut.png",
+    img:"img/hut.png",
     ofertas:{
       "iFood":     {preco:9.90, frete:5.99, tempo:30, promo:"—",            link:"https://www.ifood.com.br/delivery/sao-paulo-sp/pizza-hut---brooklin-sao-paulo/5e974043-1ea7-4d04-bdff-182099447aa2"},
       "Rappi":     {preco:42.90, frete:0.00, tempo:27, promo:"Frete grátis", link:"#rappi"},
@@ -23,7 +23,7 @@ const DB = [
     distancia_km:2.9,
     tempo_min:32,
     prato:"Pepperoni Clássica",
-    img:"assets/dominos.png",
+    img:"img/dominos.png",
     ofertas:{
       "iFood":     {preco:36.90, frete:6.99, tempo:32, promo:"—",          link:"https://www.ifood.com.br/"},
       "Rappi":     {preco:38.50, frete:0.00, tempo:28, promo:"Cupom R$10", link:"#rappi"},
@@ -38,7 +38,7 @@ const DB = [
     distancia_km:8.0,
     tempo_min:40,
     prato:"Calabresa Família",
-    img:"assets/generic.jpg",
+    img:"img/eneric.jpg",
     ofertas:{
       "iFood":     {preco:29.90, frete:5.99, tempo:42, promo:"—",            link:"https://www.ifood.com.br/"},
       "Rappi":     {preco:31.90, frete:0.00, tempo:40, promo:"Frete grátis", link:"#rappi"},
@@ -166,7 +166,7 @@ function renderList(items){
     b.addEventListener('click', ()=>{
       const id = b.getAttribute('data-fav');
       const sess = getSession?.();
-      if(!sess?.email){ location.href = '../pages/login.html'; return; }
+      if(!sess?.email){ location.href = 'login.html'; return; }
       if(currentFavs.has(id)) currentFavs.delete(id);
       else currentFavs.add(id);
       saveFavs(sess.email, currentFavs);
