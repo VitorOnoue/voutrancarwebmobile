@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Entrar — Favoris</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+<body>
+  <header>
+    <nav class="container nav" aria-label="Barra superior">
+      <h1 class="logo"><span class="logo-badge" aria-hidden="true"></span> Loren Ypsum</h1>
+      <ul class="nav-actions" aria-label="Navegação principal">
+        <li><a href="index.html" id="lnkHome">Início</a></li>
+        <li><a href="login.html" aria-current="page">Entrar</a></li>
+        <li><a class="btn btn-outline" href="register.html">Criar conta</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <main class="container">
+    <section class="hero" aria-label="Login">
+      <h2 class="title">Acesse sua conta</h2>
+      <p class="subtitle">Entre para gerenciar seus favoritos e continuar de onde parou.</p>
+
+      <form id="formLogin" class="auth-form card-like">
+        <label class="input">
+          <span>📧</span><input name="email" type="email" placeholder="email@exemplo.com" required />
+        </label>
+        <label class="input">
+          <span>🔒</span><input name="password" type="password" placeholder="Senha" required />
+        </label>
+        <button class="btn btn-primary" type="submit">Entrar</button>
+        <p class="muted">Não tem conta? <a href="register.html">Crie aqui</a>.</p>
+      </form>
+    </section>
+  </main>
+
+  <script src="auth.js"></script>
+  <script>
+    document.querySelector('#formLogin').addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const data = new FormData(e.currentTarget);
+      const email = (data.get('email')||'').toString().trim().toLowerCase();
+      const password = (data.get('password')||'').toString();
+
+      const users = loadUsers();
+      const ok = users.find(u=>u.email===email && u.password===password);
+      if(!ok){ alert('Credenciais inválidas'); return; }
+
+      setSession({ email });
+      location.href = 'pages/index.html';
+    });
+  </script>
+</body>
+</html>

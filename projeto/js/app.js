@@ -56,9 +56,37 @@ const secResults = $('#results');
 const secConfirm = $('#confirm');
 const dlg        = $('#compareDialog');
 
+// ====== Sessão/Favoritos (via auth.js) ======
+let currentUser = getSession?.() || null;
+let currentFavs = currentUser?.email ? loadFavs(currentUser.email) : new Set();
+
+function hydrateSessionUI(){
+  // Atualiza topo (auth.js também faz isso automaticamente)
+  const sess = getSession?.();
+  const navUser = $('#navUser');
+  const btnLogin = $('#btnLogin');
+  const btnLogout = $('#btnLogout');
+  const lnkFavs = $('#lnkFavs');
+
+  if(sess?.email){
+    currentUser = { email: sess.email };
+    currentFavs = loadFavs(sess.email);
+    if(navUser){ navUser.textContent = sess.email; navUser.hidden = false; }
+    if(btnLogin){ btnLogin.hidden = true; }
+    if(btnLogout){
+      btnLogout.hidden = false;
+      btnLogout.onclick = (e)=>{ e.preventDefault(); logoutAndRedirect(); };
+    }
+    if(lnkFavs){ lnkFavs.removeAttribute('aria-disabled'); }
+  } else {
+    currentUser = null;
+    currentFavs = new Set();
+  }
+}
+
 function show(section){
-  [secHome,secResults,secConfirm].forEach(s=> s.hidden = true);
-  section.hidden = false;
+  [secHome,secResults,secConfirm].forEach(s=> s && (s.hidden = true));
+  section && (section.hidden = false);
   window.scrollTo({top:0, behavior:'smooth'});
 }
 function currency(v){ return v.toLocaleString('pt-BR',{style:'currency',currency:'BRL'}); }
@@ -70,9 +98,22 @@ function cheapest(ofs){
 
 // ====== RENDER RESULTADOS ======
 function renderList(items){
+  if(!elList) return;
   elList.innerHTML = "";
+
+  // Se a lista estiver vazia e usuário for "Favoritos"
+  if(items.length === 0){
+    const li = document.createElement('li');
+    li.className = 'item';
+    li.innerHTML = `<div class="meta"><h3>Nenhum favorito ainda</h3><p class="muted">Clique em "🤍 Favoritar" nos resultados para salvar.</p></div>`;
+    elList.appendChild(li);
+    show(secResults);
+    return;
+  }
+
   items.forEach(r=>{
     const best = cheapest(r.ofertas);
+    const isFav = currentUser ? currentFavs.has(r.id) : false;
 
     const li = document.createElement('li');
     li.className = 'item';
@@ -85,42 +126,54 @@ function renderList(items){
     const meta  = document.createElement('section');
     meta.className = 'meta';
     meta.innerHTML = `
-    <h3>${r.nome}</h3>
+      <h3>${r.nome}</h3>
+      <p class="muted details">
+        <span>${r.tipo}</span>
+        <span>· ${r.distancia_km} km</span>
+        <span>· ${r.tempo_min}–${r.tempo_min+10} min</span>
+      </p>
+      <p class="muted note">
+        <span>Prato: <b>${r.prato}</b></span>
+        <span>· Nota ★ ${r.rating.toFixed(1)}</span>
+      </p>
+    `;
 
-    <p class="muted details">
-      <span>${r.tipo}</span>
-      <span>· ${r.distancia_km} km</span>
-      <span>· ${r.tempo_min}–${r.tempo_min+10} min</span>
-    </p>
-
-    <p class="muted note">
-      <span>Prato: <b>${r.prato}</b></span>
-      <span>· Nota ★ ${r.rating.toFixed(1)}</span>
-    </p>
-  `;
-
-  // depois do meta, crie a pílula posicionada na “área price”
-  const price = document.createElement('span');
-  price.className = 'price-pill price';
-  price.innerHTML = `A partir de <b>${currency(cheapest(r.ofertas).total)}</b>`;
-
+    const price = document.createElement('span');
+    price.className = 'price-pill price';
+    price.innerHTML = `A partir de <b>${currency(cheapest(r.ofertas).total)}</b>`;
 
     const actions = document.createElement('aside');
-    actions.className = 'compare'
-    actions.innerHTML =  `<button class="btn btn-primary" data-open="${r.id}">Comparar preços</button>`;;
-
+    actions.className = 'compare';
+    actions.innerHTML = `
+      <button class="btn btn-primary" data-open="${r.id}">Comparar preços</button>
+      <button class="fav ${isFav ? 'is-active':''}" data-fav="${r.id}">${isFav?'💖 Favorito':'🤍 Favoritar'}</button>
+    `;
 
     li.appendChild(fig);     
     li.appendChild(meta);    
     li.appendChild(actions); 
     li.appendChild(price);   
     elList.appendChild(li);
-
   });
 
-  elList.querySelectorAll ('[data-open]').forEach(b=>{
+  // Ações: abrir comparação
+  elList.querySelectorAll('[data-open]').forEach(b=>{
     b.addEventListener('click', ()=> openCompare(b.getAttribute('data-open')));
-  })
+  });
+
+  // Ações: favoritar
+  elList.querySelectorAll('[data-fav]').forEach(b=>{
+    b.addEventListener('click', ()=>{
+      const id = b.getAttribute('data-fav');
+      const sess = getSession?.();
+      if(!sess?.email){ location.href = '../pages/login.html'; return; }
+      if(currentFavs.has(id)) currentFavs.delete(id);
+      else currentFavs.add(id);
+      saveFavs(sess.email, currentFavs);
+      b.classList.toggle('is-active');
+      b.textContent = b.classList.contains('is-active') ? '💖 Favorito' : '🤍 Favoritar';
+    });
+  });
 }
 
 // ====== BUSCA ======
@@ -150,13 +203,17 @@ function order(by){
 
 // ====== MODAL DE COMPARAÇÃO ======
 let current = null;
-
 function openCompare(id){
   const r = DB.find(x=>x.id===id);
   current = r;
-  $('#modalRestaurant').textContent = r.nome;
-  $('#modalDish').textContent = r.prato;
-  const tbody = $('#modalRows'); tbody.innerHTML = "";
+  const mRest = $('#modalRestaurant');
+  const mDish = $('#modalDish');
+  const tbody = $('#modalRows');
+  if(!mRest || !mDish || !tbody || !dlg){ return; }
+
+  mRest.textContent = r.nome;
+  mDish.textContent = r.prato;
+  tbody.innerHTML = "";
   const rows = Object.entries(r.ofertas)
     .map(([app,o])=>({app,...o,total:o.preco+o.frete}))
     .sort((a,b)=>a.total-b.total);
@@ -176,31 +233,117 @@ function openCompare(id){
   });
 
   dlg.showModal();
-  $('#btnGoCheapest').onclick = ()=>{
-    const best = rows[0];
-    $('#confirmMsg').innerHTML =
-      `Você escolheu <b>${r.nome}</b> via <b>${best.app}</b> por <b>${currency(best.total)}</b>.`;
-    const a = $('#openApp'); a.href = best.link || '#';
-    dlg.close();
-    show(secConfirm);
-  };
+  const go = $('#btnGoCheapest');
+  if(go){
+    go.onclick = ()=>{
+      const best = rows[0];
+      const msg = $('#confirmMsg');
+      const a = $('#openApp');
+      if(msg) msg.innerHTML = `Você escolheu <b>${r.nome}</b> via <b>${best.app}</b> por <b>${currency(best.total)}</b>.`;
+      if(a) a.href = best.link || '#';
+      dlg.close();
+      show(secConfirm);
+    };
+  }
 }
 
 // ====== EVENTOS UI ======
-$('#searchForm').addEventListener('submit', e=>{
-  e.preventDefault();
-  search($('#q').value);
-});
+const searchForm = $('#searchForm');
+if(searchForm){
+  searchForm.addEventListener('submit', e=>{
+    e.preventDefault();
+    search($('#q').value);
+  });
+}
 document.querySelectorAll('.cat').forEach(c=>{
   c.addEventListener('click', ()=> search(c.dataset.cat));
 });
 document.querySelectorAll('.filters [data-order]').forEach(b=>{
   b.addEventListener('click', ()=> order(b.getAttribute('data-order')));
 });
-$('#editSearch').addEventListener('click', ()=> show(secHome));
-$('#backResults').addEventListener('click', ()=> show(secResults));
-$('#closeDialog').addEventListener('click', ()=> dlg.close());
-$('#lnkHome').addEventListener('click', e=>{e.preventDefault(); show(secHome);});
+$('#editSearch')?.addEventListener('click', ()=> show(secHome));
+$('#backResults')?.addEventListener('click', ()=> show(secResults));
+$('#closeDialog')?.addEventListener('click', ()=> dlg?.close());
+$('#lnkHome')?.addEventListener('click', e=>{ e.preventDefault(); show(secHome); });
+
+// Favoritos no topo
+$('#lnkFavs')?.addEventListener('click', (e)=>{
+  e.preventDefault();
+  const sess = getSession?.();
+  if(!sess?.email){ location.href = 'login.html'; return; }
+  const favs = loadFavs(sess.email);
+  const items = DB.filter(r=>favs.has(r.id));
+  renderList(items.length? items : []);
+  show(secResults);
+});
 
 // ====== CARGA INICIAL ======
+hydrateSessionUI();
 renderList(DB);
+
+// ====== API MAPAS ======
+let gmap, gPlaces;
+const gMarkers = [];
+const DEFAULT_CENTER = { lat: -1.455, lng: -48.503 }; // Belém-PA
+const MAP_STYLE_HIDE_POIS = [
+  { featureType: 'poi', stylers: [{ visibility: 'off' }] },
+  { featureType: 'transit', stylers: [{ visibility: 'off' }] }
+];
+
+function requestUserLocation() {
+  if (!('geolocation' in navigator)) {
+    console.warn('Geolocation não suportada pelo navegador.');
+    return;
+  }
+  navigator.geolocation.getCurrentPosition(
+    (pos) => {
+      const coords = { lat: pos.coords.latitude, lng: pos.coords.longitude };
+      gmap.setCenter(coords);
+      gmap.setZoom(15);
+      loadNearby(coords);
+    },
+    (err) => { console.warn('Geolocation negada/erro:', err); },
+    { enableHighAccuracy: true, timeout: 8000, maximumAge: 30000 }
+  );
+}
+
+function initMap() {
+  const el = document.getElementById('map');
+  if (!el) { console.error('Contêiner #map não encontrado.'); return; }
+
+  gmap = new google.maps.Map(el, {
+    center: DEFAULT_CENTER,
+    zoom: 14,
+    styles: MAP_STYLE_HIDE_POIS,
+    mapId: 'DEMO_MAP_ID',
+  });
+
+  gPlaces = new google.maps.places.PlacesService(gmap);
+  loadNearby(DEFAULT_CENTER);
+  requestUserLocation();
+}
+window.initMap = window.initMap || initMap;
+
+function loadNearby(center) {
+  const req = { location: center, radius: 2000, type: 'restaurant' };
+  gPlaces.nearbySearch(req, (results, status, pagination) => {
+    if (status !== google.maps.places.PlacesServiceStatus.OK || !results) {
+      console.error('Places error:', status);
+      return;
+    }
+    gMarkers.forEach(m => m.setMap(null));
+    gMarkers.length = 0;
+    results.forEach(place => {
+      if (!place.geometry?.location) return;
+      const marker = new google.maps.Marker({
+        map: gmap,
+        position: place.geometry.location,
+        title: place.name || 'Restaurante',
+      });
+      gMarkers.push(marker);
+    });
+    if (pagination?.hasNextPage) {
+      setTimeout(() => pagination.nextPage(), 350);
+    }
+  });
+}

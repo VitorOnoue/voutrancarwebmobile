@@ -1,6 +1,6 @@
 ### Nomes:
 ### Gabriel Braum - 10401421
-### Lucas Braga - 1403286
+### Lucas Braga - 10403286
 ### Vitor Onoue - 10402362
 ### Yan Carmo - 10742626
 
@@ -69,7 +69,7 @@ Abaixo está a **jornada completa** do usuário no protótipo:
 
 ### Tela 3 — Comparação Detalhada
 
-![Tela 3 ](https://github.com/VitorOnoue/voutrancarwebmobile/blob/main/readme_images/tela3.png)
+![Tela 3](https://github.com/VitorOnoue/voutrancarwebmobile/blob/main/readme_images/tela3.png)
 
 - Ao clicar em **“Ver oferta”**, o usuário vê:
   - O **mesmo restaurante** listado em **vários apps**.
@@ -98,16 +98,55 @@ Abaixo está a **jornada completa** do usuário no protótipo:
 - **Transparência**: comparação clara de valores e taxas.
 - **Personalização**: recomendações com base na distância e promoções.
 
-## 5. Próximos Passos
+# 5. Código
 
-- Criar a **tela de confirmação** para completar o fluxo.
-- Adicionar filtros avançados:
-  - **Menor preço**
-  - **Menor tempo de entrega**
-  - **Frete grátis**
-- Implementar **deep links** para abrir os apps diretamente.
+## index.html
+- Estrutura básica de uma página HTML com `<header>`, `<main>` e `<footer>` para o comparador de delivery **Favoris**.  
+- Cabeçalho inclui logo, navegação principal e botões de login/logout.  
+- O `<main>` contém quatro seções:  
+  1. Tela inicial com busca e categorias.  
+  2. Resultados da busca com filtros, lista e mapa.  
+  3. Modal de comparação de preços.  
+  4. Confirmação de pedido.  
+- O modal exibe uma tabela comparativa de apps de delivery (preço, frete, tempo e promoções), destacando o mais barato.
 
-## Porquê o projeto é extensionista
+## login.html
+- Página de login com `<header>` (logo e navegação para Início, Entrar e Criar conta).  
+- `<main>` possui formulário de login solicitando e-mail e senha, com link para cadastro.  
+- Script captura o envio do formulário, valida credenciais locais, inicia sessão e redireciona para a página principal; exibe alerta se inválidas.
+
+## register.html
+- Página de cadastro com `<header>` (logo e navegação para Início, Entrar e Criar conta).  
+- `<main>` contém formulário de registro solicitando e-mail e senha, com link para login.  
+- Script valida o formulário, verifica se o e-mail já existe, salva os dados localmente, inicia sessão e tenta notificar um backend CSV; redireciona para a página principal.
+
+## app.js
+- Define um **mock de dados** (`DB`) com restaurantes, pratos e ofertas em iFood, Rappi e Uber Eats.  
+- Inclui funções utilitárias para seleção de elementos, formatação de moeda e cálculo do menor preço.  
+- Gerencia **sessão e favoritos**, atualizando a interface e salvando favoritos localmente.  
+- Renderiza a **lista de restaurantes** com detalhes, preço mais barato e botões de comparar/favoritar, adicionando eventos para interação.  
+- Implementa **busca e ordenação** por nome, tipo, prato, preço, tempo ou avaliação; abre modal de comparação e confirma escolha do usuário.  
+- Integração com **Google Maps e Places API** para mostrar restaurantes próximos, marcadores e usar a localização do usuário; eventos controlam a navegação entre seções.
+
+## auth.js
+- Gerencia usuários, sessão e favoritos usando **localStorage**, com funções para carregar/salvar usuários, iniciar/encerrar sessão e manipular favoritos por e-mail.  
+- Inclui helpers de autenticação como `ensureLogged()` (redireciona usuários não logados) e `logoutAndRedirect()` (encerra sessão e volta à página inicial).  
+- Atualiza a **barra superior** (`hydrateTopbar`) exibindo e-mail do usuário, botões de login/logout e link de favoritos conforme estado da sessão.
+
+## server.js
+- Cria um **backend mínimo em Node.js/Express** para registrar credenciais de usuários em CSV (`users_plain.csv`) sem usar banco de dados.  
+- Usa middleware `cors` e `express.json()` para permitir requisições HTTP e interpretar JSON.  
+- Função `ensureCsv()` garante que o CSV exista, e `csvSanitize()` previne injeção de fórmulas em planilhas.  
+- **POST /api/csv/register**: recebe e-mail e senha, valida e adiciona ao CSV com timestamp; retorna erro se inválido ou falha na escrita.  
+- **GET /api/users.csv**: envia o arquivo CSV completo; servidor roda na porta 3000 ou variável de ambiente.
+
+
+
+## 6. Conclusão com os aprendizados adquiridos.
+
+Durante o desenvolvimento do projeto, foi possível aplicar conceitos de HTML, CSS e JavaScript para criar uma aplicação web funcional. Aprendemos a gerenciar dados de usuários e sessões usando localStorage, além de manipular a interface dinamicamente com eventos. Também foi abordada a integração com APIs externas, como Google Maps e Places. O trabalho reforçou boas práticas de organização de código e modularização entre front-end e back-end. Por fim, compreendemos a importância de validar dados e oferecer uma experiência de usuário clara e interativa.
+
+## 7. Porquê o projeto é extensionista
 
 - Conexão com a comunidade: o sistema ajuda usuários comuns a economizar dinheiro, tempo e ter mais transparência sobre as taxas e promoções
 - Impacto social e tecnológico: facilita o acesso à informação e aproxima o usuário a novas tecnologias de comparação inteligente

@@ -10,12 +10,7 @@
   <header>
     <nav class="container nav" aria-label="Barra superior">
       <h1 class="logo"><span class="logo-badge" aria-hidden="true"></span> Loren Ypson</h1>
-      <ul class="nav-actions" aria-label="Navegação principal">
-        <li><a href="#" id="lnkHome">Início</a></li>
-        <li><a href="#" id="lnkFavs" aria-disabled="true">Favoritos</a></li>
-        <li><span class="pill">PT · R$</span></li>
-        <li><a class="btn btn-outline" href="#" aria-disabled="true">Entrar</a></li>
-      </ul>
+      <ul class="nav-actions" aria-label="Navegação principal"><li><a href="#" id="lnkHome">Início</a></li><li><a href="#" id="lnkFavs">Favoritos</a></li><li><span class="pill" id="navUser" hidden></span></li><li><button class="btn btn-outline" id="btnLogin" onclick="location.href='pages/login.html'">Entrar</button></li><li><button class="btn btn-outline" id="btnLogout" hidden>Sair</button></li></ul>
     </nav>
   </header>
 
@@ -36,7 +31,7 @@
         </label>
         <label class="input">
           <span aria-hidden="true">👥</span>
-          <input id="pax" name="pax" value="2 pessoas" />
+          <input id="pax" name="pax" placeholder="2 pessoas" />
         </label>
         <button class="btn btn-primary">Pesquisar</button>
       </form>
@@ -65,7 +60,7 @@
         </aside>
         <!-- mapa ilustrativo (placeholder) -->
         <section class="panel" aria-label="Mapa (ilustrativo)">
-          <section class="map">Mapa ilustrativo (responsivo)</section>
+          <section id="map" class="map" role="region" aria-label="Mapa de restaurantes"></section>
         </section>
       </section>
     </section>
@@ -114,6 +109,12 @@
     © 2025 Favoris — Protótipo educacional
   </footer>
 
+  <script defer src="js/auth.js"></script>
   <script defer src="js/app.js"></script>
+
+
+
+  <script defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBWsmsOPUhK8GFeCObYvWBSWsMgTJe89Jo&libraries=places&v=weekly&language=pt-BR&region=BR&callback=initMap"></script>
+
 </body>
 </html>
